@@ -1,10 +1,6 @@
 'use client';
 
-<<<<<<< HEAD
 import { getSupabase } from './supabase';
-=======
-import { supabase } from './supabase';
->>>>>>> 5369747a648835d1218998dbd1be46a1cd33c3cf
 import { Citation, AUTEUR_MOUVEMENT, AUTEUR_OBJET } from './types';
 
 const USE_SERVER_SIDE_MOUVEMENT_OBJET = false;
@@ -18,10 +14,7 @@ export type FetchFilters = {
 };
 
 export async function fetchCitations(filters: FetchFilters): Promise<Citation[]> {
-<<<<<<< HEAD
   const supabase = getSupabase();
-=======
->>>>>>> 5369747a648835d1218998dbd1be46a1cd33c3cf
   let q = supabase.from('citations').select('*');
 
   if (filters.auteur && filters.auteur !== 'Tous') q = q.eq('auteur', filters.auteur);
@@ -62,20 +55,14 @@ export async function fetchCitations(filters: FetchFilters): Promise<Citation[]>
 
 export async function fetchByIds(ids: number[]): Promise<Citation[]> {
   if (ids.length === 0) return [];
-<<<<<<< HEAD
   const supabase = getSupabase();
-=======
->>>>>>> 5369747a648835d1218998dbd1be46a1cd33c3cf
   const { data, error } = await supabase.from('citations').select('*').in('id', ids);
   if (error) throw new Error(`Erreur Supabase : ${error.message}`);
   return (data ?? []) as Citation[];
 }
 
 export async function fetchAuteurs(): Promise<string[]> {
-<<<<<<< HEAD
   const supabase = getSupabase();
-=======
->>>>>>> 5369747a648835d1218998dbd1be46a1cd33c3cf
   const { data, error } = await supabase.from('citations').select('auteur').order('auteur');
   if (error) return ['Tous'];
   const all = Array.from(new Set((data ?? []).map((r) => r.auteur as string))).sort();

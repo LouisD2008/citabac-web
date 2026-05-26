@@ -1,6 +1,5 @@
 'use client';
 
-<<<<<<< HEAD
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
 // Lazily create the client on first use. This avoids running createClient()
@@ -26,13 +25,3 @@ export function getSupabase(): SupabaseClient {
   });
   return _client;
 }
-=======
-import { createClient } from '@supabase/supabase-js';
-
-const url = process.env.NEXT_PUBLIC_SUPABASE_URL ?? '';
-const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '';
-
-export const supabase = createClient(url, anonKey, {
-  auth: { persistSession: false },
-});
->>>>>>> 5369747a648835d1218998dbd1be46a1cd33c3cf
