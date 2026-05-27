@@ -211,7 +211,9 @@ export function SwipeScreen({ filters }: { filters: Filters }) {
     <div
       ref={containerRef}
       className="h-full w-full relative overflow-hidden bg-black select-none"
-      style={{ touchAction: 'none' }}
+      // While swiping we lock touch to the drag gesture (`none`); once a card is
+      // flipped, drag is disabled and we allow `pan-y` so the explanation can scroll.
+      style={{ touchAction: currentFlipped ? 'pan-y' : 'none' }}
     >
       <motion.div
         className="absolute inset-0"
@@ -425,8 +427,13 @@ function BackFace({
 }) {
   return (
     <div
-      className="w-full h-full flex flex-col px-7 pt-16 pb-20 sm:px-12 sm:pt-20 overflow-y-auto no-scrollbar"
-      style={{ background: `linear-gradient(to bottom, ${gradTop}, #000)` }}
+      className="w-full h-full flex flex-col px-7 pt-16 pb-20 sm:px-12 sm:pt-20 overflow-y-auto no-scrollbar smooth-scroll"
+      // pan-y keeps the explanation scrollable even though the swipe
+      // container locks touch-action while not flipped.
+      style={{
+        background: `linear-gradient(to bottom, ${gradTop}, #000)`,
+        touchAction: 'pan-y',
+      }}
     >
       <div className="flex items-center justify-between">
         <span

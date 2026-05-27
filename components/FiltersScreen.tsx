@@ -131,8 +131,9 @@ export function FiltersScreen({
         </div>
       </div>
 
-      {/* Tab content (scrollable) */}
-      <div className="flex-1 overflow-y-auto px-5 py-5 pb-28">
+      {/* Tab content (scrollable).
+          min-h-0 lets this flex child shrink so it can scroll on mobile. */}
+      <div className="flex-1 min-h-0 overflow-y-auto smooth-scroll px-5 py-5 pb-28">
         {tab === 'auteur' && <AuteurTab filters={filters} onChange={onChange} auteurs={auteurs} isDark={isDark} />}
         {tab === 'theme' && <ThemeTab filters={filters} onChange={onChange} isDark={isDark} />}
         {tab === 'bac' && <BacTab filters={filters} onChange={onChange} isDark={isDark} />}

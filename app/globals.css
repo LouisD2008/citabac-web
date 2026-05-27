@@ -11,7 +11,53 @@ body {
 }
 
 body {
+  font-family: 'Lora', serif;@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overscroll-behavior: none;
+}
+
+body {
   font-family: 'Lora', serif;
+  background: #0F0F1A;
+}
+
+.light body {
+  background: #F5F1E8;
+}
+
+/* Hide scrollbars (used by the explanation back-face) */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Momentum + contained scrolling for inner scroll areas on mobile.
+   Pair with `min-h-0` on flex children so they actually scroll. */
+.smooth-scroll {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+/* Perspective for the 3D flip card */
+.perspective {
+  perspective: 1500px;
+}
+.preserve-3d {
+  transform-style: preserve-3d;
+}
+.backface-hidden {
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+.rotate-y-180 {
+  transform: rotateY(180deg);
+}
+
   background: #0F0F1A;
 }
 
