@@ -19,18 +19,11 @@ body {
   background: #F5F1E8;
 }
 
-/* Hide scrollbars in swipe view */
+/* Hide scrollbars (used by the explanation back-face) */
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-/* Snap container for vertical swiping */
-.snap-y-mandatory {
-  scroll-snap-type: y mandatory;
-  -webkit-overflow-scrolling: touch;
-}
-.snap-start { scroll-snap-align: start; scroll-snap-stop: always; }
-
-/* Perspective for 3D flip */
+/* Perspective for the 3D flip card */
 .perspective {
   perspective: 1500px;
 }

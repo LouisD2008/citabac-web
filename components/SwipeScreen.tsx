@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { Heart, Share2, ChevronDown, BookOpen, RefreshCw } from 'lucide-react';
+import { motion, useMotionValue, animate, PanInfo } from 'framer-motion';
+import { Heart, Share2, ChevronUp, BookOpen, RefreshCw } from 'lucide-react';
 import {
   Citation,
   hasExplication,
@@ -29,13 +30,25 @@ function shuffle<T>(arr: T[]): T[] {
   return a;
 }
 
+// How far (fraction of viewport height) or how fast (px/s) a drag must go
+// to count as a deliberate swipe rather than a cancelled one.
+const DISTANCE_THRESHOLD = 0.22;
+const VELOCITY_THRESHOLD = 500;
+
 export function SwipeScreen({ filters }: { filters: Filters }) {
   const [citations, setCitations] = useState<Citation[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [flipped, setFlipped] = useState<Set<number>>(new Set());
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [index, setIndex] = useState(0);
+  const [showHint, setShowHint] = useState(true);
+
+  // Vertical drag offset of the whole stack, in pixels.
+  const y = useMotionValue(0);
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const heightRef = useRef(0);
+  const animatingRef = useRef(false);
+
   const { isLiked, toggle: toggleLike } = useLikes();
 
   const load = useCallback(async () => {
@@ -45,59 +58,103 @@ export function SwipeScreen({ filters }: { filters: Filters }) {
       const data = await fetchCitations(filters);
       setCitations(shuffle(data));
       setFlipped(new Set());
-      setCurrentIndex(0);
-      // jump back to top
-      requestAnimationFrame(() => {
-        containerRef.current?.scrollTo({ top: 0 });
-      });
+      setIndex(0);
+      setShowHint(true);
+      y.set(0);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Erreur inconnue');
     } finally {
       setLoading(false);
     }
-  }, [filters]);
+  }, [filters, y]);
 
   useEffect(() => {
     load();
   }, [load]);
 
-  // Track current index via scroll position (one card per viewport).
-  const onScroll = useCallback(() => {
-    const el = containerRef.current;
-    if (!el) return;
-    const idx = Math.round(el.scrollTop / el.clientHeight);
-    if (idx !== currentIndex) {
-      // auto-unflip the card we're leaving
-      const leaving = citations[currentIndex];
-      if (leaving) {
-        setFlipped((prev) => {
-          if (!prev.has(leaving.id)) return prev;
-          const next = new Set(prev);
-          next.delete(leaving.id);
-          return next;
-        });
-      }
-      setCurrentIndex(idx);
-    }
-  }, [currentIndex, citations]);
+  // Measure the viewport height once mounted and on resize.
+  useEffect(() => {
+    const measure = () => {
+      heightRef.current = containerRef.current?.clientHeight ?? 0;
+    };
+    measure();
+    window.addEventListener('resize', measure);
+    return () => window.removeEventListener('resize', measure);
+  }, [citations.length]);
 
-  const toggleFlip = (id: number) => {
+  const goTo = useCallback(
+    (nextIndex: number) => {
+      const h = heightRef.current || 1;
+      const clamped = Math.max(0, Math.min(citations.length - 1, nextIndex));
+      const delta = clamped - index;
+
+      if (delta === 0) {
+        animate(y, 0, { type: 'spring', stiffness: 550, damping: 45 });
+        return;
+      }
+
+      animatingRef.current = true;
+      animate(y, -delta * h, {
+        type: 'spring',
+        stiffness: 550,
+        damping: 45,
+        onComplete: () => {
+          const leaving = citations[index];
+          if (leaving) {
+            setFlipped((prev) => {
+              if (!prev.has(leaving.id)) return prev;
+              const n = new Set(prev);
+              n.delete(leaving.id);
+              return n;
+            });
+          }
+          setIndex(clamped);
+          y.set(0);
+          animatingRef.current = false;
+        },
+      });
+    },
+    [citations, index, y],
+  );
+
+  const onDragEnd = useCallback(
+    (_: unknown, info: PanInfo) => {
+      if (animatingRef.current) return;
+      const h = heightRef.current || 1;
+      const offset = info.offset.y;
+      const velocity = info.velocity.y;
+
+      const passedDistance = Math.abs(offset) > h * DISTANCE_THRESHOLD;
+      const passedVelocity = Math.abs(velocity) > VELOCITY_THRESHOLD;
+
+      if (passedDistance || passedVelocity) {
+        if (offset < 0) goTo(index + 1);
+        else goTo(index - 1);
+        setShowHint(false);
+      } else {
+        goTo(index);
+      }
+    },
+    [goTo, index],
+  );
+
+  const toggleFlip = useCallback((id: number) => {
     setFlipped((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
       else next.add(id);
       return next;
     });
-  };
+  }, []);
 
-  const share = async (c: Citation) => {
+  const share = useCallback(async (c: Citation) => {
     const text = `« ${c.citation} » — ${c.auteur}, ${c.oeuvre}`;
     if (navigator.share) {
       try {
         await navigator.share({ text, title: 'Citabac' });
         return;
       } catch {
-        /* user cancelled — fall through to clipboard */
+        /* cancelled */
       }
     }
     try {
@@ -106,7 +163,7 @@ export function SwipeScreen({ filters }: { filters: Filters }) {
     } catch {
       alert(text);
     }
-  };
+  }, []);
 
   if (loading) {
     return (
@@ -140,79 +197,107 @@ export function SwipeScreen({ filters }: { filters: Filters }) {
     );
   }
 
+  // Render only the 3 cards around the current index for performance.
+  const visible: { c: Citation; slot: number }[] = [];
+  for (let slot = -1; slot <= 1; slot++) {
+    const i = index + slot;
+    if (i >= 0 && i < citations.length) visible.push({ c: citations[i], slot });
+  }
+
+  const currentCard = citations[index];
+  const currentFlipped = currentCard ? flipped.has(currentCard.id) : false;
+
   return (
     <div
       ref={containerRef}
-      onScroll={onScroll}
-      className="h-full w-full overflow-y-scroll snap-y-mandatory no-scrollbar bg-black"
+      className="h-full w-full relative overflow-hidden bg-black select-none"
+      style={{ touchAction: 'none' }}
     >
-      {citations.map((c, idx) => {
-        const isFlipped = flipped.has(c.id);
-        const accent = themeAccent(c.theme);
-        const gradTop = themeGradientTop(c.theme);
-        const liked = isLiked(c.id);
+      <motion.div
+        className="absolute inset-0"
+        style={{ y }}
+        drag={currentFlipped ? false : 'y'}
+        dragDirectionLock
+        dragElastic={0.18}
+        dragMomentum={false}
+        dragConstraints={{
+          top: index >= citations.length - 1 ? 0 : -Infinity,
+          bottom: index <= 0 ? 0 : Infinity,
+        }}
+        onDragEnd={onDragEnd}
+      >
+        {visible.map(({ c, slot }) => {
+          const isFlipped = flipped.has(c.id);
+          const accent = themeAccent(c.theme);
+          const gradTop = themeGradientTop(c.theme);
 
-        return (
-          <section
-            key={c.id}
-            className="snap-start relative h-full w-full"
-            style={{ height: '100%' }}
-          >
-            <FlippableCard
-              isFlipped={isFlipped}
-              front={
-                <FrontFace
-                  c={c}
-                  accent={accent}
-                  gradTop={gradTop}
-                  onFlip={() => toggleFlip(c.id)}
-                />
-              }
-              back={
-                <BackFace
-                  c={c}
-                  accent={accent}
-                  gradTop={gradTop}
-                  onFlip={() => toggleFlip(c.id)}
-                />
-              }
-            />
-
-            {/* Action column — hidden when flipped for cleaner reading */}
-            {!isFlipped && (
-              <div className="absolute right-4 sm:right-6 bottom-[24%] flex flex-col gap-5 items-center z-10">
-                <ActionButton
-                  onClick={() => toggleLike(c.id)}
-                  label={liked ? 'Aimé' : 'J\'aime'}
-                  active={liked}
-                  accent={accent}
-                >
-                  <Heart
-                    size={26}
-                    fill={liked ? accent : 'transparent'}
-                    color={liked ? accent : 'white'}
+          return (
+            <div
+              key={c.id}
+              className="absolute left-0 right-0 h-full"
+              style={{
+                top: `${slot * 100}%`,
+                pointerEvents: slot === 0 ? 'auto' : 'none',
+              }}
+            >
+              <FlippableCard
+                isFlipped={isFlipped}
+                front={
+                  <FrontFace
+                    c={c}
+                    accent={accent}
+                    gradTop={gradTop}
+                    onFlip={() => toggleFlip(c.id)}
                   />
-                </ActionButton>
-                <ActionButton
-                  onClick={() => share(c)}
-                  label="Partager"
-                  accent={accent}
-                >
-                  <Share2 size={24} color="white" />
-                </ActionButton>
-              </div>
-            )}
+                }
+                back={
+                  <BackFace
+                    c={c}
+                    accent={accent}
+                    gradTop={gradTop}
+                    onFlip={() => toggleFlip(c.id)}
+                  />
+                }
+              />
+            </div>
+          );
+        })}
+      </motion.div>
 
-            {/* First-card hint */}
-            {idx === 0 && currentIndex === 0 && !isFlipped && (
-              <div className="absolute bottom-6 left-0 right-0 flex flex-col items-center text-white/40 pointer-events-none">
-                <ChevronDown size={26} className="animate-bounce" />
-                <span className="text-xs">Swipe pour continuer</span>
-              </div>
-            )}
-          </section>
-        );
-      })}
+      {currentCard && !currentFlipped && (
+        <div className="absolute right-4 sm:right-6 bottom-[24%] flex flex-col gap-5 items-center z-20">
+          <ActionButton
+            onClick={() => toggleLike(currentCard.id)}
+            label={isLiked(currentCard.id) ? 'Aimé' : "J'aime"}
+            active={isLiked(currentCard.id)}
+            accent={themeAccent(currentCard.theme)}
+          >
+            <Heart
+              size={26}
+              fill={isLiked(currentCard.id) ? themeAccent(currentCard.theme) : 'transparent'}
+              color={isLiked(currentCard.id) ? themeAccent(currentCard.theme) : 'white'}
+            />
+          </ActionButton>
+          <ActionButton
+            onClick={() => share(currentCard)}
+            label="Partager"
+            accent={themeAccent(currentCard.theme)}
+          >
+            <Share2 size={24} color="white" />
+          </ActionButton>
+        </div>
+      )}
+
+      <div className="absolute top-4 right-4 z-20 text-xs text-white/40 tabular-nums">
+        {index + 1} / {citations.length}
+      </div>
+
+      {showHint && index === 0 && !currentFlipped && (
+        <div className="absolute bottom-6 left-0 right-0 flex flex-col items-center text-white/40 pointer-events-none z-20">
+          <ChevronUp size={26} className="animate-bounce" />
+          <span className="text-xs">Glisse vers le haut</span>
+        </div>
+      )}
     </div>
   );
 }
@@ -239,9 +324,7 @@ function ActionButton({
       <span
         className="h-12 w-12 rounded-full backdrop-blur-md flex items-center justify-center transition-transform group-active:scale-90"
         style={{
-          background: active
-            ? `${accent}33`
-            : 'rgba(255, 255, 255, 0.12)',
+          background: active ? `${accent}33` : 'rgba(255, 255, 255, 0.12)',
           border: `1px solid ${active ? accent : 'rgba(255,255,255,0.18)'}`,
         }}
       >
@@ -266,11 +349,8 @@ function FrontFace({
   return (
     <div
       className="w-full h-full flex flex-col px-7 pt-16 pb-20 sm:px-12 sm:pt-20"
-      style={{
-        background: `linear-gradient(to bottom, ${gradTop}, #000)`,
-      }}
+      style={{ background: `linear-gradient(to bottom, ${gradTop}, #000)` }}
     >
-      {/* Theme + œuvre badge */}
       <div className="flex items-center gap-2 flex-wrap">
         <span
           className="text-[10px] tracking-[2px] uppercase font-bold px-3 py-1 rounded-full"
@@ -291,10 +371,7 @@ function FrontFace({
 
       <div className="flex-1" />
 
-      <div
-        className="font-serif text-[60px] leading-none"
-        style={{ color: `${accent}4D` }}
-      >
+      <div className="font-serif text-[60px] leading-none" style={{ color: `${accent}4D` }}>
         ❝
       </div>
 
@@ -316,7 +393,7 @@ function FrontFace({
           }}
         >
           <BookOpen size={16} />
-          Voir l'explication
+          Voir l&apos;explication
         </button>
       )}
 
@@ -324,16 +401,11 @@ function FrontFace({
 
       <div className="h-px w-full bg-white/10" />
       <div className="mt-5 flex items-baseline gap-3 flex-wrap">
-        <span
-          className="font-serif font-bold text-lg"
-          style={{ color: accent }}
-        >
+        <span className="font-serif font-bold text-lg" style={{ color: accent }}>
           {c.auteur}
         </span>
         {c.oeuvre && (
-          <span className="font-body italic text-white/60 text-sm">
-            {c.oeuvre}
-          </span>
+          <span className="font-body italic text-white/60 text-sm">{c.oeuvre}</span>
         )}
       </div>
     </div>
@@ -354,9 +426,7 @@ function BackFace({
   return (
     <div
       className="w-full h-full flex flex-col px-7 pt-16 pb-20 sm:px-12 sm:pt-20 overflow-y-auto no-scrollbar"
-      style={{
-        background: `linear-gradient(to bottom, ${gradTop}, #000)`,
-      }}
+      style={{ background: `linear-gradient(to bottom, ${gradTop}, #000)` }}
     >
       <div className="flex items-center justify-between">
         <span
@@ -385,7 +455,8 @@ function BackFace({
           « {c.citation} »
         </p>
         <p className="mt-2 text-xs text-white/40">
-          — {c.auteur}{c.oeuvre ? `, ${c.oeuvre}` : ''}
+          — {c.auteur}
+          {c.oeuvre ? `, ${c.oeuvre}` : ''}
         </p>
       </div>
 
