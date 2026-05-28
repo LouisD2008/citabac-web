@@ -37,8 +37,6 @@ export function MainShell() {
       className="fixed inset-0 flex flex-col"
       style={{ background: isDark ? '#0F0F1A' : '#F5F1E8' }}
     >
-      {/* Mount all tabs and toggle visibility — preserves state (filters, scroll, flips).
-          `min-h-0` lets this flex child shrink so inner scroll areas can scroll. */}
       <div className="flex-1 min-h-0 relative overflow-hidden">
         <Pane visible={current === 0}>
           <FiltersScreen
@@ -48,7 +46,7 @@ export function MainShell() {
           />
         </Pane>
         <Pane visible={current === 1}>
-          <SwipeScreen filters={filters} />
+          <SwipeScreen filters={filters} isActive={current === 1} />
         </Pane>
         <Pane visible={current === 2}>
           <FavorisScreen />
