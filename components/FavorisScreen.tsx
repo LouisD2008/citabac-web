@@ -55,7 +55,7 @@ export function FavorisScreen() {
       </div>
 
       {/* min-h-0 lets this flex child shrink so it can scroll on mobile */}
-      <div className="flex-1 min-h-0 overflow-y-auto smooth-scroll px-5 pb-24">
+      <div className="flex-1 min-h-0 overflow-y-scroll smooth-scroll px-5 pb-24">
         {loading && (
           <div className="flex items-center justify-center py-20">
             <div className="h-8 w-8 border-2 border-accent border-t-transparent rounded-full animate-spin" />
