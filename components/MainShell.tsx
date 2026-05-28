@@ -37,39 +37,43 @@ export function MainShell() {
       className="fixed inset-0 flex flex-col"
       style={{ background: isDark ? '#0F0F1A' : '#F5F1E8' }}
     >
-      <div className="flex-1 min-h-0 relative overflow-hidden">
-        {/* display:none (not visibility:hidden) so Framer Motion touch listeners
-            on the SwipeScreen can't bleed into the other tabs */}
-        <Pane visible={current === 0}>
+      {/*
+        No overflow-hidden here — iOS Safari blocks child overflow-y:auto scroll
+        when a parent has overflow:hidden. Each pane manages its own overflow.
+      */}
+      <div className="flex-1 min-h-0 relative">
+
+        {/* Filtres — plain pane, no overflow clipping needed */}
+        <div
+          className="absolute inset-0"
+          style={{ display: current === 0 ? 'block' : 'none' }}
+        >
           <FiltersScreen
             filters={filters}
             onChange={onFiltersChange}
             onGoToSwipe={() => setCurrent(1)}
           />
-        </Pane>
-        <Pane visible={current === 1}>
+        </div>
+
+        {/* Swipe — needs overflow-hidden to clip card animations */}
+        <div
+          className="absolute inset-0 overflow-hidden"
+          style={{ display: current === 1 ? 'block' : 'none' }}
+        >
           <SwipeScreen filters={filters} isActive={current === 1} />
-        </Pane>
-        <Pane visible={current === 2}>
+        </div>
+
+        {/* Favoris — plain pane */}
+        <div
+          className="absolute inset-0"
+          style={{ display: current === 2 ? 'block' : 'none' }}
+        >
           <FavorisScreen />
-        </Pane>
+        </div>
+
       </div>
 
       <BottomNav current={current} onChange={setCurrent} isDark={isDark} />
-    </div>
-  );
-}
-
-function Pane({ visible, children }: { visible: boolean; children: React.ReactNode }) {
-  return (
-    <div
-      className="absolute inset-0"
-      // display:none kills ALL touch/pointer events at the browser level,
-      // including Framer Motion's document-level drag listeners.
-      // React state inside is fully preserved (no unmount).
-      style={{ display: visible ? 'block' : 'none' }}
-    >
-      {children}
     </div>
   );
 }
