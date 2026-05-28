@@ -71,12 +71,12 @@ export function SwipeScreen({ filters, isActive }: { filters: Filters; isActive:
 
   useEffect(() => {
     const measure = () => {
-      heightRef.current = containerRef.current?.clientHeight ?? 0;
+      heightRef.current = containerRef.current?.clientHeight || window.innerHeight;
     };
     measure();
     window.addEventListener('resize', measure);
     return () => window.removeEventListener('resize', measure);
-  }, [citations.length, isActive]);
+  }, [citations.length]);
 
   const goTo = useCallback(
     (nextIndex: number) => {
