@@ -37,8 +37,6 @@ export function MainShell() {
       className="fixed inset-0 flex flex-col"
       style={{ background: isDark ? '#0F0F1A' : '#F5F1E8' }}
     >
-      {/* Mount all tabs and toggle visibility — preserves state (filters, scroll, flips).
-          `min-h-0` lets this flex child shrink so inner scroll areas can scroll. */}
       <div className="flex-1 min-h-0 relative overflow-hidden">
         <Pane visible={current === 0}>
           <FiltersScreen
@@ -48,7 +46,7 @@ export function MainShell() {
           />
         </Pane>
         <Pane visible={current === 1}>
-          <SwipeScreen filters={filters} />
+          <SwipeScreen filters={filters} isActive={current === 1} />
         </Pane>
         <Pane visible={current === 2}>
           <FavorisScreen />
@@ -87,34 +85,11 @@ function BottomNav({
   const border = isDark ? 'rgba(255,255,255,.07)' : 'rgba(0,0,0,.08)';
 
   return (
-    <nav
-      style={{
-        background: bg,
-        borderTop: `1px solid ${border}`,
-      }}
-    >
+    <nav style={{ background: bg, borderTop: `1px solid ${border}` }}>
       <div className="h-[60px] flex">
-        <NavItem
-          active={current === 0}
-          onClick={() => onChange(0)}
-          icon={<SlidersHorizontal size={22} />}
-          label="Filtres"
-          isDark={isDark}
-        />
-        <NavItem
-          active={current === 1}
-          onClick={() => onChange(1)}
-          icon={<PlayCircle size={24} />}
-          label="Swipe"
-          isDark={isDark}
-        />
-        <NavItem
-          active={current === 2}
-          onClick={() => onChange(2)}
-          icon={<Heart size={22} />}
-          label="Favoris"
-          isDark={isDark}
-        />
+        <NavItem active={current === 0} onClick={() => onChange(0)} icon={<SlidersHorizontal size={22} />} label="Filtres" isDark={isDark} />
+        <NavItem active={current === 1} onClick={() => onChange(1)} icon={<PlayCircle size={24} />} label="Swipe" isDark={isDark} />
+        <NavItem active={current === 2} onClick={() => onChange(2)} icon={<Heart size={22} />} label="Favoris" isDark={isDark} />
       </div>
     </nav>
   );
@@ -126,7 +101,6 @@ function NavItem({
   active: boolean; onClick: () => void; icon: React.ReactNode; label: string; isDark: boolean;
 }) {
   const inactive = isDark ? '#555570' : '#999999';
-
   return (
     <button
       onClick={onClick}
@@ -139,10 +113,7 @@ function NavItem({
       >
         {icon}
       </span>
-      <span
-        className="text-[10px] tracking-wider"
-        style={{ fontWeight: active ? 700 : 400 }}
-      >
+      <span className="text-[10px] tracking-wider" style={{ fontWeight: active ? 700 : 400 }}>
         {label}
       </span>
     </button>

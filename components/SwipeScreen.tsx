@@ -35,7 +35,7 @@ function shuffle<T>(arr: T[]): T[] {
 const DISTANCE_THRESHOLD = 0.22;
 const VELOCITY_THRESHOLD = 500;
 
-export function SwipeScreen({ filters }: { filters: Filters }) {
+export function SwipeScreen({ filters, isActive }: { filters: Filters; isActive: boolean }) {
   const [citations, setCitations] = useState<Citation[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -213,12 +213,12 @@ export function SwipeScreen({ filters }: { filters: Filters }) {
       className="h-full w-full relative overflow-hidden bg-black select-none"
       // While swiping we lock touch to the drag gesture (`none`); once a card is
       // flipped, drag is disabled and we allow `pan-y` so the explanation can scroll.
-      style={{ touchAction: currentFlipped ? 'pan-y' : 'none' }}
+      style={{ touchAction: (isActive && !currentFlipped) ? 'none' : 'pan-y' }}
     >
       <motion.div
         className="absolute inset-0"
         style={{ y }}
-        drag={currentFlipped ? false : 'y'}
+        drag={(isActive && !currentFlipped) ? 'y' : false}
         dragDirectionLock
         dragElastic={0.18}
         dragMomentum={false}
