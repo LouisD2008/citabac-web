@@ -76,7 +76,7 @@ export function SwipeScreen({ filters, isActive }: { filters: Filters; isActive:
     measure();
     window.addEventListener('resize', measure);
     return () => window.removeEventListener('resize', measure);
-  }, [citations.length]);
+  }, [citations.length, isActive]);
 
   const goTo = useCallback(
     (nextIndex: number) => {
