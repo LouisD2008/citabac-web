@@ -37,43 +37,39 @@ export function MainShell() {
       className="fixed inset-0 flex flex-col"
       style={{ background: isDark ? '#0F0F1A' : '#F5F1E8' }}
     >
-      {/*
-        No overflow-hidden here — iOS Safari blocks child overflow-y:auto scroll
-        when a parent has overflow:hidden. Each pane manages its own overflow.
-      */}
-      <div className="flex-1 min-h-0 relative">
-
-        {/* Filtres — plain pane, no overflow clipping needed */}
-        <div
-          className="absolute inset-0"
-          style={{ display: current === 0 ? 'block' : 'none' }}
-        >
+      {/* Mount all tabs and toggle visibility — preserves state (filters, scroll, flips).
+          `min-h-0` lets this flex child shrink so inner scroll areas can scroll. */}
+      <div className="flex-1 min-h-0 relative overflow-hidden">
+        <Pane visible={current === 0}>
           <FiltersScreen
             filters={filters}
             onChange={onFiltersChange}
             onGoToSwipe={() => setCurrent(1)}
           />
-        </div>
-
-        {/* Swipe — needs overflow-hidden to clip card animations */}
-        <div
-          className="absolute inset-0 overflow-hidden"
-          style={{ display: current === 1 ? 'block' : 'none' }}
-        >
-          <SwipeScreen filters={filters} isActive={current === 1} />
-        </div>
-
-        {/* Favoris — plain pane */}
-        <div
-          className="absolute inset-0"
-          style={{ display: current === 2 ? 'block' : 'none' }}
-        >
+        </Pane>
+        <Pane visible={current === 1}>
+          <SwipeScreen filters={filters} />
+        </Pane>
+        <Pane visible={current === 2}>
           <FavorisScreen />
-        </div>
-
+        </Pane>
       </div>
 
       <BottomNav current={current} onChange={setCurrent} isDark={isDark} />
+    </div>
+  );
+}
+
+function Pane({ visible, children }: { visible: boolean; children: React.ReactNode }) {
+  return (
+    <div
+      className="absolute inset-0"
+      style={{
+        visibility: visible ? 'visible' : 'hidden',
+        pointerEvents: visible ? 'auto' : 'none',
+      }}
+    >
+      {children}
     </div>
   );
 }
@@ -91,11 +87,34 @@ function BottomNav({
   const border = isDark ? 'rgba(255,255,255,.07)' : 'rgba(0,0,0,.08)';
 
   return (
-    <nav style={{ background: bg, borderTop: `1px solid ${border}` }}>
+    <nav
+      style={{
+        background: bg,
+        borderTop: `1px solid ${border}`,
+      }}
+    >
       <div className="h-[60px] flex">
-        <NavItem active={current === 0} onClick={() => onChange(0)} icon={<SlidersHorizontal size={22} />} label="Filtres" isDark={isDark} />
-        <NavItem active={current === 1} onClick={() => onChange(1)} icon={<PlayCircle size={24} />} label="Swipe" isDark={isDark} />
-        <NavItem active={current === 2} onClick={() => onChange(2)} icon={<Heart size={22} />} label="Favoris" isDark={isDark} />
+        <NavItem
+          active={current === 0}
+          onClick={() => onChange(0)}
+          icon={<SlidersHorizontal size={22} />}
+          label="Filtres"
+          isDark={isDark}
+        />
+        <NavItem
+          active={current === 1}
+          onClick={() => onChange(1)}
+          icon={<PlayCircle size={24} />}
+          label="Swipe"
+          isDark={isDark}
+        />
+        <NavItem
+          active={current === 2}
+          onClick={() => onChange(2)}
+          icon={<Heart size={22} />}
+          label="Favoris"
+          isDark={isDark}
+        />
       </div>
     </nav>
   );
@@ -107,6 +126,7 @@ function NavItem({
   active: boolean; onClick: () => void; icon: React.ReactNode; label: string; isDark: boolean;
 }) {
   const inactive = isDark ? '#555570' : '#999999';
+
   return (
     <button
       onClick={onClick}
@@ -119,7 +139,10 @@ function NavItem({
       >
         {icon}
       </span>
-      <span className="text-[10px] tracking-wider" style={{ fontWeight: active ? 700 : 400 }}>
+      <span
+        className="text-[10px] tracking-wider"
+        style={{ fontWeight: active ? 700 : 400 }}
+      >
         {label}
       </span>
     </button>

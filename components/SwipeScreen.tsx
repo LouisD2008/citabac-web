@@ -30,10 +30,12 @@ function shuffle<T>(arr: T[]): T[] {
   return a;
 }
 
+// How far (fraction of viewport height) or how fast (px/s) a drag must go
+// to count as a deliberate swipe rather than a cancelled one.
 const DISTANCE_THRESHOLD = 0.22;
 const VELOCITY_THRESHOLD = 500;
 
-export function SwipeScreen({ filters, isActive }: { filters: Filters; isActive: boolean }) {
+export function SwipeScreen({ filters }: { filters: Filters }) {
   const [citations, setCitations] = useState<Citation[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -41,6 +43,7 @@ export function SwipeScreen({ filters, isActive }: { filters: Filters; isActive:
   const [index, setIndex] = useState(0);
   const [showHint, setShowHint] = useState(true);
 
+  // Vertical drag offset of the whole stack, in pixels.
   const y = useMotionValue(0);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const heightRef = useRef(0);
@@ -69,9 +72,10 @@ export function SwipeScreen({ filters, isActive }: { filters: Filters; isActive:
     load();
   }, [load]);
 
+  // Measure the viewport height once mounted and on resize.
   useEffect(() => {
     const measure = () => {
-      heightRef.current = containerRef.current?.clientHeight || window.innerHeight;
+      heightRef.current = containerRef.current?.clientHeight ?? 0;
     };
     measure();
     window.addEventListener('resize', measure);
@@ -193,6 +197,7 @@ export function SwipeScreen({ filters, isActive }: { filters: Filters; isActive:
     );
   }
 
+  // Render only the 3 cards around the current index for performance.
   const visible: { c: Citation; slot: number }[] = [];
   for (let slot = -1; slot <= 1; slot++) {
     const i = index + slot;
@@ -202,19 +207,18 @@ export function SwipeScreen({ filters, isActive }: { filters: Filters; isActive:
   const currentCard = citations[index];
   const currentFlipped = currentCard ? flipped.has(currentCard.id) : false;
 
-  // Only allow drag when this tab is active and the card isn't flipped
-  const dragEnabled = isActive && !currentFlipped;
-
   return (
     <div
       ref={containerRef}
       className="h-full w-full relative overflow-hidden bg-black select-none"
-      style={{ touchAction: dragEnabled ? 'none' : 'pan-y' }}
+      // While swiping we lock touch to the drag gesture (`none`); once a card is
+      // flipped, drag is disabled and we allow `pan-y` so the explanation can scroll.
+      style={{ touchAction: currentFlipped ? 'pan-y' : 'none' }}
     >
       <motion.div
         className="absolute inset-0"
         style={{ y }}
-        drag={dragEnabled ? 'y' : false}
+        drag={currentFlipped ? false : 'y'}
         dragDirectionLock
         dragElastic={0.18}
         dragMomentum={false}
@@ -424,6 +428,8 @@ function BackFace({
   return (
     <div
       className="w-full h-full flex flex-col px-7 pt-16 pb-20 sm:px-12 sm:pt-20 overflow-y-auto no-scrollbar smooth-scroll"
+      // pan-y keeps the explanation scrollable even though the swipe
+      // container locks touch-action while not flipped.
       style={{
         background: `linear-gradient(to bottom, ${gradTop}, #000)`,
         touchAction: 'pan-y',
