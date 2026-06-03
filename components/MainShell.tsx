@@ -33,10 +33,17 @@ export function MainShell() {
     setFilters((prev) => ({ ...prev, ...patch }));
 
   return (
-    <div
-      className="fixed inset-0 flex flex-col"
-      style={{ background: isDark ? '#0F0F1A' : '#F5F1E8' }}
-    >
+   <div
+  className="fixed flex flex-col"
+  style={{
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    height: '100dvh',        // ← KEY: dynamic viewport height, Safari-safe
+    background: isDark ? '#0F0F1A' : '#F5F1E8',
+  }}
+>
       <div className="flex-1 min-h-0 relative overflow-hidden">
         <Pane visible={current === 0}>
           <FiltersScreen
@@ -85,8 +92,12 @@ function BottomNav({
   const border = isDark ? 'rgba(255,255,255,.07)' : 'rgba(0,0,0,.08)';
 
   return (
-    <nav style={{ background: bg, borderTop: `1px solid ${border}` }}>
-      <div className="h-[60px] flex">
+    <nav style={{
+  background: bg,
+  borderTop: `1px solid ${border}`,
+  paddingBottom: 'env(safe-area-inset-bottom)',  // ← notch phones
+}}>
+  <div className="h-[60px] flex">
         <NavItem active={current === 0} onClick={() => onChange(0)} icon={<SlidersHorizontal size={22} />} label="Filtres" isDark={isDark} />
         <NavItem active={current === 1} onClick={() => onChange(1)} icon={<PlayCircle size={24} />} label="Swipe" isDark={isDark} />
         <NavItem active={current === 2} onClick={() => onChange(2)} icon={<Heart size={22} />} label="Favoris" isDark={isDark} />

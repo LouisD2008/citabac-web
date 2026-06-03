@@ -131,20 +131,18 @@ export function FiltersScreen({
         </div>
       </div>
 
-      {/* Tab content (scrollable).
-          min-h-0 lets this flex child shrink so it can scroll on mobile. */}
-      <div className="flex-1 min-h-0 overflow-y-scroll smooth-scroll px-5 py-5 pb-28">
+      <div className="flex-1 min-h-0 overflow-y-scroll smooth-scroll px-5 py-5 pb-4">
         {tab === 'auteur' && <AuteurTab filters={filters} onChange={onChange} auteurs={auteurs} isDark={isDark} />}
         {tab === 'theme' && <ThemeTab filters={filters} onChange={onChange} isDark={isDark} />}
         {tab === 'bac' && <BacTab filters={filters} onChange={onChange} isDark={isDark} />}
         {tab === 'mouvement' && <MouvementTab filters={filters} onChange={onChange} isDark={isDark} />}
       </div>
 
-      {/* Sticky CTA */}
-      <div className="absolute bottom-[68px] left-0 right-0 px-5 pointer-events-none">
+      {/* CTA is now a real flex child, not absolute */}
+      <div className="px-5 pb-3 pt-2 shrink-0">
         <button
           onClick={onGoToSwipe}
-          className="pointer-events-auto w-full h-12 rounded-2xl text-white font-semibold tracking-wide"
+          className="w-full h-12 rounded-2xl text-white font-semibold tracking-wide"
           style={{ background: '#6C63FF', boxShadow: '0 8px 24px rgba(108,99,255,.3)' }}
         >
           Lancer le swipe →

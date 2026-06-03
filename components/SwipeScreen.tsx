@@ -431,9 +431,11 @@ function BackFace({
       // pan-y keeps the explanation scrollable even though the swipe
       // container locks touch-action while not flipped.
       style={{
-        background: `linear-gradient(to bottom, ${gradTop}, #000)`,
-        touchAction: 'pan-y',
-      }}
+  background: `linear-gradient(to bottom, ${gradTop}, #000)`,
+  touchAction: 'pan-y',
+  WebkitOverflowScrolling: 'touch',
+  overscrollBehavior: 'contain',
+}}
     >
       <div className="flex items-center justify-between">
         <span

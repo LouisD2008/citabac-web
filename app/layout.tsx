@@ -13,6 +13,7 @@ export const viewport: Viewport = {
   maximumScale: 1,
   userScalable: false,
   themeColor: '#0F0F1A',
+  viewportFit: 'cover',    // ← enables env(safe-area-inset-bottom)
 };
 
 export default function RootLayout({
