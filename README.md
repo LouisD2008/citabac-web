@@ -1,4 +1,4 @@
-## Citabac Web version
+# Citabac Web version
 
 --> Deployed on https://citabac.com and available on [Google Play Store](https://play.google.com/store/apps/details?id=com.citabac.app&hl=en)
 
@@ -13,7 +13,7 @@ For example:
 
 **Explication:** Cette citation de Victor Hugo souligne l'importance de la pensée individuelle et de l'expression libre. La pensée, en effet, est un bien qui ne se partage pas comme un objet matériel, mais qui se renforce et se développe lorsqu'elle est partagée et discutée. Cela signifie que la liberté d'expression et de pensée est essentielle pour que les idées puissent évoluer et s'enrichir.
 
-# Tech stack: 
+## Tech stack: 
   - Framework: Next.js
   - Language: Typescript
   - Styling: Tailwind CSS
