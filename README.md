@@ -1,39 +1,20 @@
-# Citabac — Web
+## Citabac Web version
 
-Web version of the Citabac Android app. Same Supabase backend, same UX:
-filters → vertical-snap swipe → flippable explanation cards → local favorites.
+--> Deployed on https://citabac.com and available on [Google Play Store](https://play.google.com/store/apps/details?id=com.citabac.app&hl=en)
 
-Stack: Next.js 14 (static export), React 18, Tailwind, Supabase.
+Citabac web is a web app for highschool students in France who are studying for the Baccalaureat de Francais. 
 
-## Local dev
+The idea is simple yet innovative: instead of scrolling through reels on Instagram, scroll through quotes from famous French authors filtered by literary movement, thematic, author and most importantly the most relevant quotes for the Bac de Francais of 2027.
 
-```bash
-cp .env.example .env.local
-npm install
-npm run dev
-```
+Users also have access to a thorough explanation of each citation (800+).
+For example: 
+"La pensee est la seule chose au monde qui ne se partage pas sans s'accroitre" Victor Hugo
+Explication: 
+"Cette citation de Victor Hugo souligne l'importance de la pensée individuelle et de l'expression libre. La pensée, en effet, est un bien qui ne se partage pas comme un objet matériel, mais qui se renforce et se développe lorsqu'elle est partagée et discutée. Cela signifie que la liberté d'expression et de pensée est essentielle pour que les idées puissent évoluer et s'enrichir."
 
-Open http://localhost:3000.
-
-## Deploy on Cloudflare Pages
-
-1. Push this folder to a GitHub repo.
-2. Cloudflare dashboard → Workers & Pages → Create → Pages → Connect to Git.
-3. Pick the repo. Build settings:
-   - Framework preset: **Next.js (Static HTML Export)**
-   - Build command: `npm run build`
-   - Build output directory: `out`
-4. Add environment variables (Settings → Environment variables):
-   - `NEXT_PUBLIC_SUPABASE_URL`
-   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-5. Deploy. Then add the custom domain `citabac.com` under the Custom domains tab.
-
-## Notes
-
-- This is a static export (`output: 'export'`). All data fetching happens
-  client-side against Supabase — no server runtime needed.
-- Favorites use `localStorage`, matching the Flutter app's SharedPreferences.
-- Mouvement / Objet filters use the same client-side mapping fallback as the
-  Flutter app. Flip `USE_SERVER_SIDE_MOUVEMENT_OBJET` in `lib/citations.ts`
-  once those columns exist in Supabase.
-- The Supabase table must have RLS enabled with a public SELECT policy.
+# Tech stack: 
+  - Framework: Next.js
+  - Language: Typescript
+  - Styling: Tailwind CSS
+  - Database: Supabase
+  - Deployment method: Cloudflare pages
