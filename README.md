@@ -25,8 +25,8 @@ For example:
 [![209-1x-shots-so.png](https://i.postimg.cc/bJP1ffNc/209-1x-shots-so.png)](https://postimg.cc/bG6Z1Mt3)
 
 ## Tech stack: 
-  - Framework: Next.js
-  - Language: Typescript
-  - Styling: Tailwind CSS
-  - Database: Supabase
-  - Deployment method: Cloudflare pages
+  - Framework: [Next.js](https://nextjs.org/)
+  - Language: [Typescript](https://www.typescriptlang.org/)
+  - Styling: [Tailwind CSS](https://tailwindcss.com/)
+  - Database: [Supabase](https://supabase.com/)
+  - Deployment method: [Cloudflare pages](https://pages.cloudflare.com/)
