@@ -73,7 +73,7 @@ export function MainShell() {
             className="text-xs sm:text-sm flex-1 hover:underline"
             style={{ color: isDark ? '#E2E2E9' : '#2D2D3A' }}
           >
-            Are you by any chance on Android? If so, then{' '}
+            Tu es sur Android par hasard ? Si oui,{' '}
             <span style={{ color: '#6C63FF', fontWeight: 600 }}>click here</span> to download the app!
           </a>
           
